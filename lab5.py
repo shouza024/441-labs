@@ -23,7 +23,7 @@ def button_pressed_callback(pin):
 
 for p in pins:
     GPIO.setup(p,GPIO.OUT)
-    pwm = GPIO.PWM(p,500)
+    pwm = GPIO.PWM (p,500)
     pwm.start(0) #makes the pwm start at 0
     led.append(pwm)
 
@@ -33,15 +33,19 @@ GPIO.add_event_detect(button_pin, GPIO.RISING,  callback=fn, bouncetime=200)
 
 try:
     while True:
-    	t = time.time()
+        t = time.time()
         for i in range (10): 
-           B[i]  = (math.sin((2*(math.pi)*f*t - direction* phi*i)))**2
-           duty [i] = 100 * B[i]
-           led[i].ChangeDutyCycle(duty[i])
+            B[i]  = (math.sin((2*(math.pi)*f*t - direction* phi*i)))**2
+            duty [i] = 100 * B[i]
+            led[i].ChangeDutyCycle(duty[i])
 except KeyboardInterrupt:
-	for l in led:
-       l.stop()
-	GPIO.cleanup()
+    for l in led:
+        l.stop()
+    GPIO.cleanup()
+
+
+
+
 
 
 
