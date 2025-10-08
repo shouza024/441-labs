@@ -33,15 +33,16 @@ for p in pins:
 
 try:
     while True:
-    	t = time.time()
+        t = time.time()
         for i in range (10): 
            B[i]  = (math.sin((2*(math.pi)*f*t - direction* phi*i)))**2
            duty [i] = 100 * B[i]
            led[i].ChangeDutyCycle(duty[i])
 except KeyboardInterrupt:
-	for l in led:
+    for l in led:
        l.stop()
-	GPIO.cleanup()
+GPIO.cleanup()
+
 
 
 
