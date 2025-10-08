@@ -22,14 +22,14 @@ def button_pressed_callback(pin):
     print(f"Direction changed! Now direction = {direction}")
 
 for p in pins:
-	GPIO.setup(p,GPIO.OUT)
+    GPIO.setup(p,GPIO.OUT)
     pwm = GPIO.PWM(p,500)
     pwm.start(0) #makes the pwm start at 0
     led.append(pwm)
 
 
 
- GPIO.add_event_detect(button_pin, GPIO.RISING,  callback=fn, bouncetime=200)
+GPIO.add_event_detect(button_pin, GPIO.RISING,  callback=fn, bouncetime=200)
 
 try:
     while True:
@@ -42,5 +42,6 @@ except KeyboardInterrupt:
 	for l in led:
        l.stop()
 	GPIO.cleanup()
+
 
 
