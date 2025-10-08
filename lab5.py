@@ -29,7 +29,7 @@ for p in pins:
 
 
 
-GPIO.add_event_detect(button_pin, GPIO.RISING,  callback=fn, bouncetime=200)
+GPIO.add_event_detect(button_pin, GPIO.RISING,  callback=button_pressed_callback, bouncetime=200)
 
 try:
     while True:
@@ -42,10 +42,5 @@ except KeyboardInterrupt:
     for l in led:
         l.stop()
     GPIO.cleanup()
-
-
-
-
-
 
 
