@@ -80,5 +80,5 @@ if __name__ == "__main__":
     			bug.__shifter.shiftByte(0)
     		time.sleep(.05)
 
-except KeyboardInterrupt:
-	GPIO.cleanup()
+    except KeyboardInterrupt:
+    	GPIO.cleanup()
