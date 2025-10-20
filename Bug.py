@@ -59,6 +59,7 @@ if __name__ == "__main__":
     			if s2_state ==1:
     				bug.isWrapOn = not bug.isWrapOn
     				print(f"Wrap toggled: {bug.isWrapOn}")
+    				time.sleep(.3)
     		prev_s2 = s2_state
 
     		#s3 Speed control
