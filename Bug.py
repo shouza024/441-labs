@@ -34,8 +34,8 @@ def stop(self):
 
 
 if __name__ == "__main__":
-	GPIO.setmode(GPIO.BCM)
-    s1,s2,s3 = 17,27,22
+    GPIO.setmode(GPIO.BCM)
+    s1,s2,s3 = 17,27,22#green purple blue wires
     GPIO.setup(s1, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
     GPIO.setup(s2, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
     GPIO.setup(s3, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
@@ -81,8 +81,4 @@ if __name__ == "__main__":
     		time.sleep(.05)
 
 except KeyboardInterrupt:
-
 	GPIO.cleanup()
-
-
-
