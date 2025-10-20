@@ -27,14 +27,4 @@ def shiftByte(self,byte):  # send a byte of data to the output
         self.__ping(self.clockPin)# add bit to register
     self.__ping(self.latchPin)    # send register to output
 
-if __name__ == "__main__"
-try:
-    dataPin, latchPin, clockPin = 23,24,25
-    shifter = Shifter(dataPin,latchPin,clockPin)
-    while True:
-        for i in range(2**8):
-            shiftByte(i)
-            time.sleep(0.5)
-except KeyboardInterrupt:
-    GPIO.cleanup()
 
