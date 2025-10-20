@@ -24,8 +24,8 @@ def start(self):
     	if self.isWrapOn:
     	    self.x = new_x%8
     	else:
-    	if o <= new_x <= 7:
-    	    self.x = new_x
+    	    if 0 <= new_x <= 7:
+    	        self.x = new_x
 def stop(self):
 self._running = False
 self.__shifter.shiftByte(0) 
@@ -83,3 +83,4 @@ if __name__ == "__main__":
 except KeyboardInterrupt:
 
 	GPIO.cleanup()
+
