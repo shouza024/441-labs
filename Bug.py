@@ -65,7 +65,7 @@ if __name__ == "__main__":
     		bug.timestep = .1/3 if s3_state else .1
 
     		if bug._running:
-    			bug.__shifter.shiftByte(1<<bug.x)
+    			bug._Bug__shifter.shiftByte(1<<bug.x)
     			time.sleep(bug.timestep)
     			bug.x += random.choice([-1,1])
 
