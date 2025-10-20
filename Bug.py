@@ -15,7 +15,7 @@ class Bug:
 		self._running = True 
 		while self._running:
 			self.__shifter.shiftByte(1<<self.x)
-			time.sleep(self.timesleep)
+			time.sleep(self.timestep)
 			step = random.choice([-1,1])
 			new_x = self.x + step
 			if self.isWrapOn:
