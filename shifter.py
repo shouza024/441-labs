@@ -2,7 +2,7 @@ import RPi.GPIO as GPIO
 import time
 
 class Shifter:
-    def __init__(self, serialPin,latchPin,clockPin)#for thread code conductor 
+    def __init__(self, serialPin,latchPin,clockPin):#for thread code conductor 
     self.serialPin = serialPin
     self.latchPin = latchPin #store the numbers of pins as attributes
     self.clockPin = clockPin
