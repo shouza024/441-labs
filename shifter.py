@@ -10,17 +10,14 @@ class Shifter:
         GPIO.setup(self.serialPin, GPIO.OUT)
         GPIO.setup(self.latchPin, GPIO.OUT, initial=0)  # start latch low
         GPIO.setup(self.clockPin, GPIO.OUT, initial=0)  # start clock low
-
-
-def __ping(self,pin):  # ping the clock or latch pin private the method
-    GPIO.output(pin, 1)#pin high
-    time.sleep(0)
-    GPIO.output(pin, 0)#pin low
-
-def shiftByte(self,byte):  # send a byte of data to the output
-    for i in range(8):
-        GPIO.output(self.serialPin, byte & (1 << i))
-        self.__ping(self.clockPin)# add bit to register
-    self.__ping(self.latchPin)    # send register to output
+    def __ping(self,pin):  # ping the clock or latch pin private the method
+        GPIO.output(pin, 1)#pin high
+        time.sleep(0)
+        GPIO.output(pin, 0)#pin low
+    def shiftByte(self,byte):  # send a byte of data to the output
+        for i in range(8):
+            GPIO.output(self.serialPin, byte & (1 << i))
+            self.__ping(self.clockPin)# add bit to register
+        self.__ping(self.latchPin)    # send register to output
 
 
