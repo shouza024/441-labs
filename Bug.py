@@ -77,7 +77,7 @@ if __name__ == "__main__":
     			else:
     				bug.x = max(0,min(7,bug.x))
     		else:
-    			bug.__shifter.shiftByte(0)
+    			bug._Bug__shifter.shiftByte(0)
     		time.sleep(.05)
 
     except KeyboardInterrupt:
