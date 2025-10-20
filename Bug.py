@@ -72,7 +72,7 @@ if __name__ == "__main__":
     			time.sleep(bug.timestep)
     			bug.x += random.choice([-1,1])
 
-    		    if bug.isWrapOn:
+    			if bug.isWrapOn:
     		    	bug.x %=8
     		    else:
     		    	bug.x = max(0,min(7,bug.x))
