@@ -12,7 +12,7 @@ class Bug:
 		self._running = False
 
 
-def start(self)
+def start(self):
     self._running = True 
     while self._running:
     	self.__shifter.shiftByte(1<<self.x)
@@ -81,4 +81,5 @@ if __name__ == "__main__":
     		time.sleep(.05)
 
 except KeyboardInterrupt:
+
 	GPIO.cleanup()
