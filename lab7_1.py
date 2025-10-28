@@ -54,7 +54,7 @@ def web_page():
 
 def serve_web_page():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # TCP-IP socket
-    s.bind(('', 80))
+    s.bind(('', 8080))
     s.listen(3)  # up to 3 queued connections
     try:
         while True:
@@ -83,7 +83,10 @@ def serve_web_page():
     	print("Server stopped")
     finally:
     	for pwm in led_pwms.values():
-    		pwm.stop()
+    		try:
+    			pwm.stop()
+    		except:
+    			pass
     	GPIO.cleanup()
     	s.close()
 
