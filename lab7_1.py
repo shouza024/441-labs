@@ -76,7 +76,7 @@ def serve_web_page():
             conn.send(b'Connection: close\r\n\r\n') # header (tell client to close at end)
             # send body in try block in case connection is interrupted:
             try:
-                conn.sendall(web_page()).encode('utf-8')                  # body
+                conn.sendall(web_page().encode('utf-8'))                  # body
             finally:
                 conn.close()                
     except KeyboardInterrupt:
