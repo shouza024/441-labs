@@ -87,5 +87,5 @@ def serve_web_page():
     	GPIO.cleanuo()
     	s.close()
 
-if __name__ == '__main__'
+if __name__ == '__main__':
     serve_web_page()
