@@ -3,7 +3,7 @@ import RPi.GPIO as GPIO
 
 
 GPIO.setmode(GPIO.BCM)
-led_pins = ['a':17, 'b':27, 'c':22]
+led_pins = {'a':17, 'b':27, 'c':22}
 
 led_pwms={}
 for key, pin in led_pins.items():
