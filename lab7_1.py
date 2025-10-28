@@ -7,7 +7,7 @@ led_pins = {'a':17, 'b':27, 'c':22}
 
 led_pwms={}
 for key, pin in led_pins.items():
-	GPIO.setup(pin,GPIO.OUT)
+    GPIO.setup(pin,GPIO.OUT)
     pwm = GPIO.PWM(pin,1000)
     pwm.start(0) #all leds initially off
     led_pwms[key] = pwm
