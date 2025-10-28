@@ -63,7 +63,7 @@ def serve_web_page():
             request = conn.recv(1024).decode('utf-8')
             print(f'Connection from {client_ip}')
 
-            if reqeust.startswith('POST'):
+            if request.startswith('POST'):
             	data_dict = parsePOSTdata(request)
             	led_choice = data_dict.get('option','a')
             	brightness = int(data_dict.get('slider1',0))
@@ -84,7 +84,7 @@ def serve_web_page():
     finally:
     	for pwm in led_pwms.values():
     		pwm.stop()
-    	GPIO.cleanuo()
+    	GPIO.cleanup()
     	s.close()
 
 if __name__ == '__main__':
