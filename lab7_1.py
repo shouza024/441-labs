@@ -24,7 +24,7 @@ def parsePOSTdata(data): #copied from gitghub repo
             data_dict[key_val[0]] = key_val[1]
     return data_dict
 
-def ledwebpage():
+def web_page():
     return f"""\
 <html>
   <body>
