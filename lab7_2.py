@@ -2,6 +2,9 @@ import socket
 import RPi.GPIO as GPIO
 
 # --- GPIO Setup ---
+
+GPIO.cleanup()
+
 GPIO.setmode(GPIO.BCM)
 led_pins = {'led1': 17, 'led2': 27, 'led3': 22}
 
