@@ -3,8 +3,8 @@ import RPi.GPIO as GPIO
 
 # --- GPIO Setup ---
 
+GPIO.setwarnings(False)
 GPIO.cleanup()
-
 GPIO.setmode(GPIO.BCM)
 led_pins = {'led1': 17, 'led2': 27, 'led3': 22}
 
@@ -13,11 +13,14 @@ led_pwms = {}
 led_brightness = {}
 
 for name, pin in led_pins.items():
-    GPIO.setup(pin, GPIO.OUT)
-    pwm = GPIO.PWM(pin, 1000)  # 1 kHz frequency
-    pwm.start(0)
-    led_pwms[name] = pwm
-    led_brightness[name] = 0
+    try:
+        GPIO.setup(pin, GPIO.OUT)
+        pwm = GPIO.PWM(pin, 1000)  # 1 kHz frequency
+        pwm.start(0)
+        led_pwms[name] = pwm
+        led_brightness[name] = 0
+    except Exception as e:
+        print(f"Error initializing {name} on pin {pin}: {e}")
 
 # --- Helper function to parse POST data ---
 def parsePOSTdata(request):
