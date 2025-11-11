@@ -20,10 +20,12 @@ class Stepper:
 
     # ===== Class Attributes =====
     num_steppers = 0         # track number of Stepper objects created
-    shifter_outputs = 0      # combined output bits for all motors
+    from multiprocessing import Value
+    shifter_outputs = Value('i', 0)  # shared 32-bit integer for all motors
+      # combined output bits for all motors
     seq = [0b0001, 0b0011, 0b0010, 0b0110,
            0b0100, 0b1100, 0b1000, 0b1001]  # CCW sequence
-    delay = 1200             # delay between motor steps [us]
+    delay = 1500             # delay between motor steps [us]
     steps_per_degree = 4096 / 360.0  # 4096 steps per revolution
 
     # ===== Initialization =====
@@ -50,12 +52,12 @@ class Stepper:
 
         # Safely modify shared outputs
         with self.lock:
-            # Clear this motor's 4 bits
-            Stepper.shifter_outputs &= ~(0b1111 << self.shifter_bit_start)
-            # Set new 4-bit pattern
-            Stepper.shifter_outputs |= pattern
-            # Output combined bits to shift register
-            self.s.shiftByte(Stepper.shifter_outputs)
+            val = Stepper.shifter_outputs.value
+            val &= ~(0b1111 << self.shifter_bit_start)  # clear this motor's bits
+            val |= pattern                              # set this motor's bits
+            Stepper.shifter_outputs.value = val
+            self.s.shiftByte(val)
+
 
         # Update angle
         self.angle.value = (self.angle.value +
