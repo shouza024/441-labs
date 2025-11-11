@@ -82,16 +82,16 @@ class Stepper:
         return p # wait for rotation to complete before continuing
     # ===== Absolute rotation =====
     def goAngle(self, a):
-    current = self.angle.value
-    delta = target_angle - current
+        current = self.angle.value
+        delta = target_angle - current
 
     # Normalize large differences to find the shortest direction
-    if delta > 180:
+        if delta > 180:
         # Example: current=10, target=350 → delta=340 → better to go -20°
-        delta -= 360
-    elif delta < -180:
+            delta -= 360
+        elif delta < -180:
         # Example: current=350, target=10 → delta=-340 → better to go +20°
-        delta += 360
+            delta += 360
         return self.rotate(delta)
 
     # ===== Zero the motor =====
