@@ -81,7 +81,7 @@ class Stepper:
         p.start()
         return p # wait for rotation to complete before continuing
     # ===== Absolute rotation =====
-    def goAngle(self, a):
+    def goAngle(self, target_angle):
         current = self.angle.value
         delta = target_angle - current
 
@@ -148,3 +148,4 @@ if __name__ == '__main__':
             time.sleep(0.1)
     except KeyboardInterrupt:
         print('\nEnd of test.')
+
