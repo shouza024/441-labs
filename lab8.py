@@ -108,15 +108,29 @@ if __name__ == '__main__':
     # Zero both motors
     m1.zero()
     m2.zero()
-
+    delay(5000)
     # Example motion sequence (both run simultaneously)
     m1.goAngle(90)
+    time.sleep(3)
+
     m1.goAngle(-45)
+    time.sleep(3)
+
     m2.goAngle(-90)
+    time.sleep(3)
+
     m2.goAngle(45)
+    time.sleep(3)
+
     m1.goAngle(-135)
+    time.sleep(3)
+
     m1.goAngle(135)
+    time.sleep(3)
+
     m1.goAngle(0)
+    time.sleep(3)
+
 
     try:
         while True:
