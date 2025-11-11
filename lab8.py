@@ -33,7 +33,7 @@ class Stepper:
         self.s = shifter
         self.angle = Value('d', 0.0)      # current angle (shared across processes)
         self.step_state = 0               # sequence index
-        self.shifter_bit_start = 4 * Stepper.num_steppers # starting bit in 8-bit reg
+        self.shifter_bit_start = 4 * (Stepper.num_steppers ^1) # starting bit in 8-bit reg
         self.lock = lock
 
         Stepper.num_steppers += 1
@@ -151,3 +151,4 @@ if __name__ == '__main__':
             time.sleep(0.1)
     except KeyboardInterrupt:
         print('\nEnd of test.')
+
