@@ -33,7 +33,7 @@ class Stepper:
         self.s = shifter
         self.angle = Value('d', 0.0)      # current angle (shared across processes)
         self.step_state = 0               # sequence index
-        self.shifter_bit_start = 4 * (Stepper.num_steppers ^ 1)# starting bit in 8-bit reg
+        self.shifter_bit_start = 4 * Stepper.num_steppers # starting bit in 8-bit reg
         self.lock = lock
 
         Stepper.num_steppers += 1
@@ -108,28 +108,42 @@ if __name__ == '__main__':
     # Zero both motors
     m1.zero()
     m2.zero()
-    time.sleep(3)
+
     # Example motion sequence (both run simultaneously)
+    print("Zeroing motors...")
+    m1.zero()
+    m2.zero()
+    time.sleep(1)
+
+    print("m1 -> 90°")
     m1.goAngle(90)
     time.sleep(3)
 
+    print("m1 -> -45°")
     m1.goAngle(-45)
     time.sleep(3)
 
+    print("m2 -> -90°")
     m2.goAngle(-90)
     time.sleep(3)
 
+    print("m2 -> 45°")
     m2.goAngle(45)
     time.sleep(3)
 
+    print("m1 -> -135°")
     m1.goAngle(-135)
     time.sleep(3)
 
+    print("m1 -> 135°")
     m1.goAngle(135)
     time.sleep(3)
 
+    print("m1 -> 0°")
     m1.goAngle(0)
     time.sleep(3)
+
+    print("Sequence complete.")
 
 
     try:
