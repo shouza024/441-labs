@@ -99,12 +99,12 @@ if __name__ == '__main__':
     s = Shifter(data=16, latch=20, clock=21)
 
     # Shared multiprocessing lock
-    lock1 = multiprocessing.Lock()
-    lock2 = multiprocessing.Lock()
+    lock = multiprocessing.Lock()
+    
 
     # Create two stepper objects
-    m1 = Stepper(s, lock1)
-    m2 = Stepper(s, lock2)
+    m1 = Stepper(s, lock)
+    m2 = Stepper(s, lock)
 
     # Zero both motors
     m1.zero()
