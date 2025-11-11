@@ -75,7 +75,7 @@ class Stepper:
 
     # ===== Public rotate =====
     def rotate(self, delta):
-    """Rotate by delta degrees and wait until done for this motor."""
+        """Rotate by delta degrees and wait until done for this motor."""
         time.sleep(0.05)  # small stagger delay
         p = multiprocessing.Process(target=self.__rotate, args=(delta,))
         p.start()
