@@ -99,11 +99,12 @@ if __name__ == '__main__':
     s = Shifter(data=16, latch=20, clock=21)
 
     # Shared multiprocessing lock
-    lock = multiprocessing.Lock()
+    lock1 = multiprocessing.Lock()
+    lock2 = multiprocessing.Lock()
 
     # Create two stepper objects
-    m1 = Stepper(s, lock)
-    m2 = Stepper(s, lock)
+    m1 = Stepper(s, lock1)
+    m2 = Stepper(s, lock2)
 
     # Zero both motors
     m1.zero()
@@ -142,4 +143,5 @@ if __name__ == '__main__':
             time.sleep(0.1)
     except KeyboardInterrupt:
         print('\nEnd of test.')
+
 
