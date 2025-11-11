@@ -75,11 +75,11 @@ class Stepper:
 
     # ===== Public rotate =====
     def rotate(self, delta):
-        """Launch rotation in a new process."""
+    """Rotate by delta degrees and wait until done for this motor."""
         time.sleep(0.05)  # small stagger delay
         p = multiprocessing.Process(target=self.__rotate, args=(delta,))
         p.start()
-
+        p.join()  # wait for rotation to complete before continuing
     # ===== Absolute rotation =====
     def goAngle(self, a):
         """
