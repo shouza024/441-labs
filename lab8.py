@@ -79,14 +79,14 @@ class Stepper:
         time.sleep(0.05)  # small stagger delay
         p = multiprocessing.Process(target=self.__rotate, args=(delta,))
         p.start()
-        p.join()  # wait for rotation to complete before continuing
+        return p # wait for rotation to complete before continuing
     # ===== Absolute rotation =====
     def goAngle(self, a):
         """
         Move to an absolute angle a (0–360) via the shortest path.
         """
         delta = (a - self.angle.value + 540) % 360 - 180
-        self.rotate(delta)
+        return self.rotate(delta)
 
     # ===== Zero the motor =====
     def zero(self):
@@ -113,37 +113,28 @@ if __name__ == '__main__':
     print("Zeroing motors...")
     m1.zero()
     m2.zero()
-    time.sleep(1)
 
-    print("m1 -> 90°")
-    m1.goAngle(90)
+    # Both start moving at the same time initially
+    p1 = m1.goAngle(90)
+    p2 = m2.goAngle(-90)
+    p1.join()
+    p2.join()
+
+    # Next — m1 keeps going while m2 reverses direction
+    p1 = m1.goAngle(-45)
+    p2 = m2.goAngle(45)
+    p1.join()
+    p2.join()
     
-
-    print("m1 -> -45°")
-    m1.goAngle(-45)
+    # Now only m1 continues through its remaining sequence
+    p1 = m1.goAngle(-135)
+    p1.join()
     
-
-    print("m2 -> -90°")
-    m2.goAngle(-90)
+    p1 = m1.goAngle(135)
+    p1.join()
     
-
-    print("m2 -> 45°")
-    m2.goAngle(45)
-    time.sleep(3)
-
-    print("m1 -> -135°")
-    m1.goAngle(-135)
-    
-
-    print("m1 -> 135°")
-    m1.goAngle(135)
-    
-
-    print("m1 -> 0°")
-    m1.goAngle(0)
-    
-
-    print("Sequence complete.")
+    p1 = m1.goAngle(0)
+    p1.join()
 
 
     try:
