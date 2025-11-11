@@ -108,7 +108,7 @@ if __name__ == '__main__':
     # Zero both motors
     m1.zero()
     m2.zero()
-    delay(5000)
+    time.sleep(3)
     # Example motion sequence (both run simultaneously)
     m1.goAngle(90)
     time.sleep(3)
@@ -137,3 +137,4 @@ if __name__ == '__main__':
             time.sleep(0.1)
     except KeyboardInterrupt:
         print('\nEnd of test.')
+
