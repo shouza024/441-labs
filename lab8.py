@@ -25,7 +25,7 @@ class Stepper:
       # combined output bits for all motors
     seq = [0b0001, 0b0011, 0b0010, 0b0110,
            0b0100, 0b1100, 0b1000, 0b1001]  # CCW sequence
-    delay = 1000             # delay between motor steps [us]
+    delay = 1500             # delay between motor steps [us]
     steps_per_degree = 4096 / 360.0  # 4096 steps per revolution
 
     # ===== Initialization =====
@@ -82,10 +82,16 @@ class Stepper:
         return p # wait for rotation to complete before continuing
     # ===== Absolute rotation =====
     def goAngle(self, a):
-        """
-        Move to an absolute angle a (0–360) via the shortest path.
-        """
-        delta = (a - self.angle.value + 540) % 360 - 180
+    current = self.angle.value
+    delta = target_angle - current
+
+    # Normalize large differences to find the shortest direction
+    if delta > 180:
+        # Example: current=10, target=350 → delta=340 → better to go -20°
+        delta -= 360
+    elif delta < -180:
+        # Example: current=350, target=10 → delta=-340 → better to go +20°
+        delta += 360
         return self.rotate(delta)
 
     # ===== Zero the motor =====
@@ -100,7 +106,6 @@ if __name__ == '__main__':
 
     # Shared multiprocessing lock
     lock = multiprocessing.Lock()
-    
 
     # Create two stepper objects
     m1 = Stepper(s, lock)
@@ -143,5 +148,3 @@ if __name__ == '__main__':
             time.sleep(0.1)
     except KeyboardInterrupt:
         print('\nEnd of test.')
-
-
