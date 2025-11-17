@@ -1,150 +1,174 @@
-# stepper_class_shiftregister_multiprocessing.py
-#
-# Stepper class for Lab 8 — simultaneous control of multiple stepper motors
-# using shift registers and multiprocessing on Raspberry Pi Zero.
+# run_steppers_from_json.py
+# Integrates Stepper class + periodic example.json parsing and motor motion.
+# Assumptions:
+#  - turret[*][1] (theta) -> azimuth (motor 1) in degrees
+#  - globe[*][1] (theta)  -> altitude (motor 2) in degrees
+#  - Shifter.shiftByte(databyte) is MSB-first (see suggested Shifter)
 
 import time
 import multiprocessing
+import json
+import os
 from multiprocessing import Value
-from shifter import Shifter  # custom Shifter class
-
+from shifter import Shifter
+# If your file is named stepper_class_shiftregister_multiprocessing.py,
+# you can import Stepper from it; for convenience the Stepper class is included below.
 
 class Stepper:
-    """
-    Supports operation of an arbitrary number of stepper motors using
-    one or more shift registers.
+    """Minimal multiprocessing-safe stepper using shift register (integrated)."""
 
-    A class attribute (shifter_outputs) keeps track of all
-    shift register output values for all motors.
-    """
-
-    # ===== Class Attributes =====
-    num_steppers = 0         # track number of Stepper objects created
-    from multiprocessing import Value
-    shifter_outputs = Value('i', 0)  # shared 32-bit integer for all motors
-      # combined output bits for all motors
+    num_steppers = 0
+    shifter_outputs = Value('i', 0)
     seq = [0b0001, 0b0011, 0b0010, 0b0110,
-           0b0100, 0b1100, 0b1000, 0b1001]  # CCW sequence
-    delay = 1500             # delay between motor steps [us]
-    steps_per_degree = 4096 / 360.0  # 4096 steps per revolution
+           0b0100, 0b1100, 0b1000, 0b1001]
+    delay = 1200
+    steps_per_degree = 4096.0 / 360.0
 
-    # ===== Initialization =====
     def __init__(self, shifter, lock):
         self.s = shifter
-        self.angle = Value('d', 0.0)      # current angle (shared across processes)
-        self.step_state = 0               # sequence index
-        self.shifter_bit_start = 4 * Stepper.num_steppers # starting bit in 8-bit reg
+        self.angle = Value('d', 0.0)
+        self.step_state = 0
+        self.shifter_bit_start = 4 * Stepper.num_steppers
         self.lock = lock
-
         Stepper.num_steppers += 1
 
-    # ===== Utility =====
     def __sgn(self, x):
         if x == 0:
             return 0
         return int(abs(x) / x)
 
-    # ===== One step =====
     def __step(self, dir):
-        """Take one step in the given direction (+1 or -1)."""
         self.step_state = (self.step_state + dir) % 8
-        pattern = Stepper.seq[self.step_state] << self.shifter_bit_start
+        seq_bits = Stepper.seq[self.step_state] << self.shifter_bit_start
 
-        # Safely modify shared outputs
         with self.lock:
             val = Stepper.shifter_outputs.value
-            val &= ~(0b1111 << self.shifter_bit_start)  # clear this motor's bits
-            val |= pattern                              # set this motor's bits
+            # clear only this motor's nibble, then OR in the pattern
+            val &= ~(0b1111 << self.shifter_bit_start)
+            val |= seq_bits
             Stepper.shifter_outputs.value = val
             self.s.shiftByte(val)
 
-
-        # Update angle
         self.angle.value = (self.angle.value +
                             dir / Stepper.steps_per_degree) % 360
 
-    # ===== Rotation worker =====
     def __rotate(self, delta):
-        """Rotate the motor by delta degrees (relative)."""
         numSteps = int(Stepper.steps_per_degree * abs(delta))
         dir = self.__sgn(delta)
+        # Acquire lock for whole rotate to avoid interleaved steps if you prefer
+        # a single motor to run uninterrupted. Remove lock.acquire/release if you want
+        # fine-grained interleaving (then __step() already uses lock).
+        self.lock.acquire()
+        try:
+            for _ in range(numSteps):
+                self.__step(dir)
+                time.sleep(Stepper.delay / 1e6)
+        finally:
+            self.lock.release()
 
-        for _ in range(numSteps):
-            self.__step(dir)
-            time.sleep(Stepper.delay / 1e6)
-
-    # ===== Public rotate =====
     def rotate(self, delta):
-        """Rotate by delta degrees and wait until done for this motor."""
-        time.sleep(0.05)  # small stagger delay
+        time.sleep(0.05)
         p = multiprocessing.Process(target=self.__rotate, args=(delta,))
         p.start()
-        return p # wait for rotation to complete before continuing
-    # ===== Absolute rotation =====
+        return p
+
     def goAngle(self, target_angle):
         current = self.angle.value
         delta = target_angle - current
-
-    # Normalize large differences to find the shortest direction
         if delta > 180:
-        # Example: current=10, target=350 → delta=340 → better to go -20°
             delta -= 360
         elif delta < -180:
-        # Example: current=350, target=10 → delta=-340 → better to go +20°
             delta += 360
         return self.rotate(delta)
 
-    # ===== Zero the motor =====
     def zero(self):
         self.angle.value = 0.0
 
 
-# ===== Example usage =====
-if __name__ == '__main__':
-    # Configure shift register
-    s = Shifter(data=16, latch=20, clock=21)
+# ---------- JSON parsing and motor control logic ----------
 
-    # Shared multiprocessing lock
-    lock = multiprocessing.Lock()
+EXAMPLE_JSON = "example.json"    # file read repeatedly (for testing)
+POLL_INTERVAL = 2.0              # seconds between file checks
+LAST_MTIME = 0
 
-    # Create two stepper objects
-    m1 = Stepper(s, lock)
-    m2 = Stepper(s, lock)
-
-    # Zero both motors
-    m1.zero()
-    m2.zero()
-
-    # Example motion sequence (both run simultaneously)
-    print("Zeroing motors...")
-    m1.zero()
-    m2.zero()
-
-    # Both start moving at the same time initially
-    p1 = m1.goAngle(90)
-    p2 = m2.goAngle(-90)
-    p1.join()
-    p2.join()
-
-    # Next — m1 keeps going while m2 reverses direction
-    p1 = m1.goAngle(-45)
-    p2 = m2.goAngle(45)
-    p1.join()
-    p2.join()
-    
-    # Now only m1 continues through its remaining sequence
-    p1 = m1.goAngle(-135)
-    p1.join()
-    
-    p1 = m1.goAngle(135)
-    p1.join()
-    
-    p1 = m1.goAngle(0)
-    p1.join()
-
+def read_positions_from_json(filename=EXAMPLE_JSON):
+    """
+    Returns (azimuth_deg, altitude_deg) or None on parse error.
+    Uses turret[0].theta and globe[0].theta by default.
+    """
+    if not os.path.isfile(filename):
+        return None
 
     try:
+        with open(filename, "r") as f:
+            data = json.load(f)
+    except Exception as e:
+        print("JSON read error:", e)
+        return None
+
+    try:
+        # Build lists similarly to your parse_json()
+        turret = [[item['r'], item['theta']] for item in data.get('turrets', {}).values()]
+        globe  = [[g['r'], g['theta'], g.get('z', 0)] for g in data.get('globes', [])]
+
+        # Safeguard: require at least one turret and one globe
+        if len(turret) == 0 or len(globe) == 0:
+            return None
+
+        azimuth = float(turret[0][1])   # degrees
+        altitude = float(globe[0][1])   # degrees
+
+        # Clamp/normalize to [0,360)
+        azimuth = azimuth % 360.0
+        altitude = altitude % 360.0
+
+        return (azimuth, altitude)
+    except Exception as e:
+        print("JSON parse error:", e)
+        return None
+
+
+def main_loop():
+    # Setup shift register and stepper objects
+    s = Shifter(data=16, clock=21, latch=20)  # adjust pins to your wiring
+    lock = multiprocessing.Lock()
+
+    m1 = Stepper(s, lock)   # motor 1 (azimuth) -> lowest nibble (bits 0-3)
+    m2 = Stepper(s, lock)   # motor 2 (altitude) -> next nibble (bits 4-7)
+
+    m1.zero()
+    m2.zero()
+
+    global LAST_MTIME
+    try:
         while True:
-            time.sleep(0.1)
+            # Check file modified time to avoid re-reading unchanged file
+            try:
+                mtime = os.path.getmtime(EXAMPLE_JSON)
+            except OSError:
+                mtime = 0
+
+            if mtime != LAST_MTIME:
+                LAST_MTIME = mtime
+                pos = read_positions_from_json(EXAMPLE_JSON)
+                if pos is not None:
+                    azimuth_deg, altitude_deg = pos
+                    print(f"New target positions — azimuth: {azimuth_deg:.2f}°, altitude: {altitude_deg:.2f}°")
+
+                    # Command motors (they return Process objects)
+                    p1 = m1.goAngle(azimuth_deg)
+                    p2 = m2.goAngle(altitude_deg)
+
+                    # Wait for both to finish before polling next file (change if you want overlap)
+                    p1.join()
+                    p2.join()
+                    print("Motion complete.")
+                else:
+                    print("No valid positions found in JSON.")
+            time.sleep(POLL_INTERVAL)
     except KeyboardInterrupt:
-        print('\nEnd of test.')
+        print("Exiting main loop.")
+
+
+if __name__ == "__main__":
+    main_loop()
