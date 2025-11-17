@@ -47,10 +47,10 @@ class Stepper:
             val = Stepper.shifter_outputs.value
 
             # 1. OR: activate this motor’s 4 bits
-            val |= (0b1111 << self.shifter_bit_start)
+            val &= ~(0b1111 << self.shifter_bit_start)
 
             # 2. AND: write actual step pattern
-            val &= seq_bits
+            val |= seq_bits
 
             Stepper.shifter_outputs.value = val
             self.s.shiftByte(val)
