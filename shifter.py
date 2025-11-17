@@ -1,5 +1,5 @@
 # Shift register class
-
+"""
 from RPi import GPIO
 from time import sleep
 
@@ -37,6 +37,70 @@ class Shifter():
     # Shift all bits in a single byte:
     def shiftByte(self, databyte):
         self.shiftWord(databyte, 8)
+"""
+# shifter.py  — fixed 74HC595 driver for Raspberry Pi (MSB-first)
+from RPi import GPIO
+from time import sleep
+
+GPIO.setmode(GPIO.BCM)
+
+class Shifter:
+
+    def __init__(self, data, clock, latch):
+        """
+        Keep signature compatible with existing code:
+            Shifter(data=16, latch=20, clock=21)
+        It will map named args correctly.
+        """
+        self.dataPin = data
+        self.clockPin = clock
+        self.latchPin = latch
+
+        GPIO.setup(self.dataPin, GPIO.OUT)
+        GPIO.setup(self.clockPin, GPIO.OUT)
+        GPIO.setup(self.latchPin, GPIO.OUT)
+
+        # Ensure outputs start low
+        GPIO.output(self.dataPin, 0)
+        GPIO.output(self.clockPin, 0)
+        GPIO.output(self.latchPin, 0)
+
+    def _pulse(self, pin, t=0.0005):
+        """Generate a short HIGH pulse on pin (default 0.5 ms)."""
+        GPIO.output(pin, 1)
+        sleep(t)
+        GPIO.output(pin, 0)
+        # small settle
+        sleep(t/4)
+
+    def shiftByte(self, databyte):
+        """
+        Send a single byte to the 74HC595 MSB-first (bit 7 down to 0),
+        then pulse the latch so outputs update simultaneously.
+        """
+        # Send bits 7..0 (MSB first)
+        for i in range(7, -1, -1):
+            bit = (databyte >> i) & 1
+            GPIO.output(self.dataPin, 1 if bit else 0)
+            # pulse clock
+            self._pulse(self.clockPin, t=0.0003)
+
+        # latch outputs
+        self._pulse(self.latchPin, t=0.0005)
+
+    # Optional convenience: send a full word of arbitrary bitlength (MSB-first)
+    def shiftWord(self, dataword, num_bits):
+        """
+        Send num_bits from dataword, MSB-first. Useful for chained 595s.
+        num_bits should be <= 32 (practical limit here).
+        """
+        if num_bits <= 0:
+            return
+        for i in range(num_bits-1, -1, -1):
+            bit = (dataword >> i) & 1
+            GPIO.output(self.dataPin, 1 if bit else 0)
+            self._pulse(self.clockPin, t=0.0003)
+        self._pulse(self.latchPin, t=0.0005)
 
 
 # Example:
