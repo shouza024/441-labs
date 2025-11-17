@@ -23,7 +23,7 @@ class Shifter():
     # Shift all bits in an arbitrary-length word, allowing
     # multiple 8-bit shift registers to be chained (with overflow
     # of SR_n tied to input of SR_n+1):
-    """
+    
     def shiftWord(self, dataword, num_bits):
         for i in range((num_bits+1) % 8):  # Load bits short of a byte with 0
             # self.dataPin.value(0)  # MicroPython for ESP32
@@ -34,14 +34,10 @@ class Shifter():
             GPIO.output(self.dataPin, dataword & (1<<i))
             self.ping(self.clockPin)
         self.ping(self.latchPin)
-    """
+    
     # Shift all bits in a single byte:
     def shiftByte(self, databyte):
-        for i  in range (7,-1,-1):
-            bit = (databyte>>i) &1
-            GPIO.output(self.databPin,bit)
-            self.ping(self.clockPin)
-        self.ping(self.latchPin)
+        self.shiftWord(databyte, 8)
 
 
 # Example:
