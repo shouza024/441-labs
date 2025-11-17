@@ -1,5 +1,5 @@
-# run_steppers_from_json.py
-# Reads example.json (radians), converts to degrees, moves 2 steppers.
+# run_from_json.py
+# Uses lab8.py Stepper class + shifter.py to read example.json and move motors.
 
 import time
 import multiprocessing
@@ -7,96 +7,87 @@ import json
 import os
 from math import degrees
 from shifter import Shifter
-from stepper_class_shiftregister_multiprocessing import Stepper
+from lab8 import Stepper   # ← YOUR FILE
 
-EXAMPLE_JSON = "example.json"   # file name
-POLL_INTERVAL = 2.0             # seconds
+JSON_FILE = "example.json"
+POLL_INTERVAL = 2.0
 LAST_MTIME = 0
 
-def read_positions_from_json():
-    """
-    Returns (azimuth_deg, altitude_deg) or None.
-    - turret "1" theta -> motor 1
-    - globe[0] theta   -> motor 2
-    """
-    if not os.path.isfile(EXAMPLE_JSON):
+def read_angles():
+    """Reads turret 1 theta and globe[0] theta (both in radians) and returns degrees."""
+    if not os.path.isfile(JSON_FILE):
         print("JSON file missing.")
         return None
 
     try:
-        with open(EXAMPLE_JSON, "r") as f:
+        with open(JSON_FILE, "r") as f:
             data = json.load(f)
     except Exception as e:
         print("JSON read error:", e)
         return None
 
     try:
-        # ----- Extract turret 1 -----
-        t1 = data["turrets"]["1"]
-        turret_theta_rad = float(t1["theta"])
-        turret_deg = degrees(turret_theta_rad) % 360
+        t1_rad = float(data["turrets"]["1"]["theta"])
+        g1_rad = float(data["globes"][0]["theta"])
 
-        # ----- Extract globe 1 -----
-        g1 = data["globes"][0]
-        globe_theta_rad = float(g1["theta"])
-        globe_deg = degrees(globe_theta_rad) % 360
-
-        return (turret_deg, globe_deg)
+        return degrees(t1_rad) % 360, degrees(g1_rad) % 360
 
     except Exception as e:
         print("JSON parse error:", e)
         return None
 
 
-def main_loop():
+def main():
+    global LAST_MTIME
 
-    # Shift register uses pins: data=16, latch=20, clock=21
+    # your shift register pins
     s = Shifter(data=16, latch=20, clock=21)
+
     lock = multiprocessing.Lock()
 
-    # Two motors
-    m1 = Stepper(s, lock)   # turret 1
-    m2 = Stepper(s, lock)   # globe 0
+    # motors
+    m1 = Stepper(s, lock)
+    m2 = Stepper(s, lock)
 
     m1.zero()
     m2.zero()
 
-    global LAST_MTIME
-
-    print("Monitoring example.json for new target angles...")
+    print("Watching example.json for updates...\n")
 
     try:
         while True:
-            # only re-read JSON if file changed
+
             try:
-                mtime = os.path.getmtime(EXAMPLE_JSON)
+                mtime = os.path.getmtime(JSON_FILE)
             except:
                 mtime = 0
 
             if mtime != LAST_MTIME:
                 LAST_MTIME = mtime
 
-                pos = read_positions_from_json()
-                if pos is not None:
-                    turret_deg, globe_deg = pos
+                result = read_angles()
+                if result is None:
+                    continue
 
-                    print(f"\nNEW JSON VALUES:")
-                    print(f"  Turret: {turret_deg:.2f}°")
-                    print(f"  Globe : {globe_deg:.2f}°")
+                turret_deg, globe_deg = result
 
-                    # Move both motors
-                    p1 = m1.goAngle(turret_deg)
-                    p2 = m2.goAngle(globe_deg)
+                print(f"New JSON data:")
+                print(f"  Motor 1 (turret): {turret_deg:.2f}°")
+                print(f"  Motor 2 (globe) : {globe_deg:.2f}°")
 
-                    # wait for both motors to finish
-                    p1.join()
-                    p2.join()
+                p1 = m1.goAngle(turret_deg)
+                p2 = m2.goAngle(globe_deg)
 
-                    print("Motors finished movement.")
-                else:
-                    print("Invalid JSON — skipping")
+                p1.join()
+                p2.join()
+
+                print("Motors finished updating.\n")
 
             time.sleep(POLL_INTERVAL)
 
     except KeyboardInterrupt:
-        print("Exiting.")
+        print("\nExiting JSON controller.")
+
+
+if __name__ == "__main__":
+    main()
